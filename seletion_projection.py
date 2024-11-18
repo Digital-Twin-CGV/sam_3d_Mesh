@@ -43,8 +43,8 @@ def marker_coordinates(doc, img_dir):
                     
                     # 3D 좌표 변환
                     result = pixel_to_point3D(imX, imY, camera, chunk)
-                    if result is not None:
-                        if visible_marker is not 2:
+                    if result != None:
+                        if visible_marker != 2:
                             visible_marker = 1
                         # print(f"Camera: {camera.label}, Marker: {marker.label}, Image Coords: ({imX}, {imY})")
                         image_path = camera.photo.path
@@ -58,7 +58,7 @@ def marker_coordinates(doc, img_dir):
                         with open(marker_file, mode='a', newline='') as file:  # 'a' 모드로 수정
                             writer = csv.writer(file)
                             writer.writerow([camera.label, marker.label, imX, imY])
-            if visible_marker is 1:
+            if visible_marker == 1:
                 vertex_3d_to_2d(camera)
                 visible_marker = 2
 
@@ -75,6 +75,7 @@ def vertex_3d_to_2d(camera):
     with open(camera_vertex_2d_file, mode='w', newline='') as file:
         writer = csv.writer(file)
         # writer.writerow(["Camera", "Vertex Index", "2D X", "2D Y"])  # 헤더 작성
+        print("!!")
 
         for vertex_index, vertex_coord in vertex_index_to_coord.items():
             vertex_3D = Metashape.Vector(vertex_coord)
@@ -103,7 +104,7 @@ random_coords = random.sample(list(vertex_index_to_coord.items()), 1)  # list로
 for index, coord in random_coords:
     # print(coord)
     chunk.addMarker(coord, visibility=True)
-    
+
     
 # SAM을 하기 위한 마커 좌표
 marker_coordinates(doc, img_dir)
