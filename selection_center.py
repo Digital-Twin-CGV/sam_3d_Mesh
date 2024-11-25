@@ -6,10 +6,10 @@ import os, shutil, csv
 chunk = Metashape.app.document.chunk
 doc = Metashape.app.document
 
-img_dir = r"C:\Users\user\Desktop\sanhak\sam\result_img"
-marker_file = r"C:\Users\user\Desktop\sanhak\sam\marker_coordinate.csv"
-vertex_3d_file = r"C:\Users\user\Desktop\sanhak\sam\vertex_3d.csv"
-vertex_2d_file = r"C:\Users\user\Desktop\sanhak\sam\vertex_2d"
+img_dir = r"D:\Users\hoans\rist\sam\result_img"
+marker_file = r"D:\Users\hoans\rist\sam\marker_coordinate.csv"
+vertex_3d_file = r"D:\Users\hoans\rist\sam\vertex_3d.csv"
+vertex_2d_file = r"D:\Users\hoans\rist\sam\vertex_2d"
 
 # 픽셀 좌표를 3D 좌표로 변환하는 함수
 def pixel_to_point3D(imX, imY, camera, chunk):

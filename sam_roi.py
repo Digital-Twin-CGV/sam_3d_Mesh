@@ -6,22 +6,23 @@ import numpy as np
 import pandas as pd
 import csv
 
+import time
+
 # Settings
 DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 MODEL_TYPE = "vit_h"
 
 # Load the model
 # sam = sam_model_registry[MODEL_TYPE](checkpoint="../sam_vit_h_4b8939.pth")
-sam = sam_model_registry[MODEL_TYPE](checkpoint=r"C:\Users\yejim\Desktop\cgv\sam\python\checkpoint\sam_vit_h_4b8939.pth")
+sam = sam_model_registry[MODEL_TYPE](checkpoint="../sam_vit_h_4b8939.pth")
 sam.to(device=DEVICE)
 mask_generator = SamAutomaticMaskGenerator(sam)
 
 # File paths
-input_img_path = r"C:\Users\yejim\Desktop\sam\result_img"
-output_img_path = r"C:\Users\yejim\Desktop\sam\sam_img"
-csv_file_path = r"C:\Users\yejim\Desktop\sam\marker_coordinate.csv"
-input_2d_path = r"C:\Users\yejim\Desktop\sam\vertex_2d.csv"
-
+input_img_path = r"D:\Users\hoans\rist\sam\result_img"
+output_img_path = r"D:\Users\hoans\rist\sam\sam_img"
+csv_file_path = r"D:\Users\hoans\rist\sam\marker_coordinate.csv"
+input_2d_path = r"D:\Users\hoans\rist\sam\vertex_2d"
 output_txt_path = os.path.join(output_img_path, 'filtered_coordinates.csv')
 
 # Ensure the output directory exists
@@ -47,23 +48,6 @@ def read_2d_coordinates(file_path):
             y = float(y_str)
             coordinates.append((camera_id, int(index), x, y))
     return coordinates
-
-    # for filename in os.listdir(file_path):
-    #     if filename.lower().endswith(".csv"):
-    #         with open(os.path.join(file_path, filename), 'r') as file:
-    #             reader = csv.reader(file)
-    #             for row in reader:
-    #                 if len(row) == 4:
-    #                     camera_id, index, x_str, y_str = row
-    #                     try:
-    #                         x = float(x_str)
-    #                         y = float(y_str)
-    #                         coordinates.append((camera_id, index, x, y))
-    #                     except ValueError:
-    #                         print(f"Invalid coordinate in file {file_path}: {row}")
-    #                 else:
-    #                     print(f"Malformed line in file {file_path}: {row}")
-    # return coordinates
 
 def read_csv_file(csv_path):
     """Reads coordinates from a CSV file."""
