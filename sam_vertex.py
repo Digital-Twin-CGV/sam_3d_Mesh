@@ -11,15 +11,15 @@ DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 MODEL_TYPE = "vit_h"
 
 # Load the model
-sam = sam_model_registry[MODEL_TYPE](checkpoint="../sam_vit_h_4b8939.pth")
+sam = sam_model_registry[MODEL_TYPE](checkpoint=r"C:\Users\yejim\Desktop\cgv\sam\python\checkpoint\sam_vit_h_4b8939.pth")
 sam.to(device=DEVICE)
 mask_generator = SamAutomaticMaskGenerator(sam)
 
 # File paths
-input_img_path = r"D:\Users\hoans\rist\sam\result_img"
-output_img_path = r"D:\Users\hoans\rist\sam\sam_img"
-csv_file_path = r"D:\Users\hoans\rist\sam\marker_coordinate.csv"
-input_2d_path = r"D:\Users\hoans\rist\sam\vertex_2d"
+input_img_path = r"C:\Users\yejim\Desktop\cgv\github\github_script_final\result\result_img"
+output_img_path = r"C:\Users\yejim\Desktop\cgv\github\github_script_final\result\sam_img"
+csv_file_path = r"C:\Users\yejim\Desktop\cgv\github\github_script_final\result\marker_coordinate.csv"
+input_2d_path = r"C:\Users\yejim\Desktop\cgv\github\github_script_final\result\vertex_2d"
 output_txt_path = os.path.join(output_img_path, 'filtered_coordinates.csv')
 
 # Ensure the output directory exists
