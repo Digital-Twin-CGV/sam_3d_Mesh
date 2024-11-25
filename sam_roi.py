@@ -17,10 +17,10 @@ sam.to(device=DEVICE)
 mask_generator = SamAutomaticMaskGenerator(sam)
 
 # File paths
-input_img_path = r"C:\Users\yejim\Desktop\sam\result_img"
-output_img_path = r"C:\Users\yejim\Desktop\sam\sam_img"
-csv_file_path = r"C:\Users\yejim\Desktop\sam\marker_coordinate.csv"
-input_2d_path = r"C:\Users\yejim\Desktop\sam\vertex_2d.csv"
+input_img_path = r"C:\Users\yejim\Desktop\cgv\github\github_script_final\result\result_img"
+output_img_path = r"C:\Users\yejim\Desktop\cgv\github\github_script_final\result\sam_img"
+csv_file_path = r"C:\Users\yejim\Desktop\cgv\github\github_script_final\result\marker_coordinate.csv"
+input_2d_path = r"C:\Users\yejim\Desktop\cgv\github\github_script_final\result\vertex_2d"
 
 output_txt_path = os.path.join(output_img_path, 'filtered_coordinates.csv')
 
@@ -38,32 +38,28 @@ def get_color():
     return (255, 0, 255)  # Pink color in RGB format
 
 def read_2d_coordinates(file_path):
-    """Reads 2D coordinates from a text file."""
+    """디렉토리에서 CSV 파일들의 2D 좌표를 읽어옵니다."""
     coordinates = []
-    with open(file_path, 'r') as file:
-        for line in file:
-            camera_id, index, x_str, y_str = line.strip().split(',')
-            x = float(x_str)
-            y = float(y_str)
-            coordinates.append((camera_id, int(index), x, y))
+    
+    # 디렉토리 내의 모든 CSV 파일을 처리
+    for filename in os.listdir(file_path):
+        if filename.lower().endswith('.csv'):
+            file_full_path = os.path.join(file_path, filename)
+            try:
+                with open(file_full_path, 'r') as file:
+                    for line in file:
+                        # CSV 형식으로 데이터 파싱
+                        camera_id, index, x_str, y_str = line.strip().split(',')
+                        try:
+                            x = float(x_str)
+                            y = float(y_str)
+                            coordinates.append((camera_id, int(index), x, y))
+                        except ValueError:
+                            print(f"좌표 변환 오류 발생: {line.strip()}")
+            except Exception as e:
+                print(f"파일 읽기 오류 {file_full_path}: {str(e)}")
+    
     return coordinates
-
-    # for filename in os.listdir(file_path):
-    #     if filename.lower().endswith(".csv"):
-    #         with open(os.path.join(file_path, filename), 'r') as file:
-    #             reader = csv.reader(file)
-    #             for row in reader:
-    #                 if len(row) == 4:
-    #                     camera_id, index, x_str, y_str = row
-    #                     try:
-    #                         x = float(x_str)
-    #                         y = float(y_str)
-    #                         coordinates.append((camera_id, index, x, y))
-    #                     except ValueError:
-    #                         print(f"Invalid coordinate in file {file_path}: {row}")
-    #                 else:
-    #                     print(f"Malformed line in file {file_path}: {row}")
-    # return coordinates
 
 def read_csv_file(csv_path):
     """Reads coordinates from a CSV file."""
