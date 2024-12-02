@@ -14,7 +14,7 @@ MODEL_TYPE = "vit_h"
 
 # Load the model
 # sam = sam_model_registry[MODEL_TYPE](checkpoint="../sam_vit_h_4b8939.pth")
-sam = sam_model_registry[MODEL_TYPE](checkpoint="../sam_vit_h_4b8939.pth")
+sam = sam_model_registry[MODEL_TYPE](checkpoint=r"C:\Users\yejim\Desktop\cgv\sam\python\checkpoint\sam_vit_h_4b8939.pth")
 sam.to(device=DEVICE)
 mask_generator = SamAutomaticMaskGenerator(sam)
 
@@ -202,9 +202,9 @@ def process_image(image_path, points, input_2d_coordinates):
             if contains_marker:
                 break
 
-        mask_image = np.zeros_like(annotated_roi)
-        mask_image[mask_array] = mask_color
-        annotated_roi = cv2.addWeighted(annotated_roi, 1.0, mask_image, 0.5, 0)
+        # mask_image = np.zeros_like(annotated_roi)
+        # mask_image[mask_array] = mask_color
+        # annotated_roi = cv2.addWeighted(annotated_roi, 1.0, mask_image, 0.5, 0)
         if contains_marker:
             # 전체 이미지 크기의 마스크 생성
             # full_mask = np.zeros((image_rgb_resized.shape[0], image_rgb_resized.shape[1]), dtype=bool)
@@ -244,11 +244,11 @@ def process_image(image_path, points, input_2d_coordinates):
                             camera_index_dict[camera_id].add(index)
     
     # ROI 영역을 원본 이미지에 복사
-    annotated_image_resized = image_rgb_resized.copy()
-    annotated_image_resized[roi_y1:roi_y2, roi_x1:roi_x2] = annotated_roi
+    # annotated_image_resized = image_rgb_resized.copy()
+    # annotated_image_resized[roi_y1:roi_y2, roi_x1:roi_x2] = annotated_roi
     
     # ROI 경계 표시
-    cv2.rectangle(annotated_image_resized, (roi_x1, roi_y1), (roi_x2, roi_y2), (0, 255, 0), 2)
+    # cv2.rectangle(annotated_image_resized, (roi_x1, roi_y1), (roi_x2, roi_y2), (0, 255, 0), 2)
 
     # Resize annotated image back to original size
     annotated_image = cv2.resize(annotated_image_resized, (original_width, original_height), interpolation=cv2.INTER_LINEAR)
