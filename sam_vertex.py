@@ -94,6 +94,7 @@ def process_image(image_path, points, input_2d_coordinates):
     if camera not in points:
         print(f"No coordinates for image: {os.path.basename(image_path)}")
         return
+    
     # Save original image dimensions
     original_height, original_width = image_bgr.shape[:2]
     # Resize the image
@@ -101,7 +102,6 @@ def process_image(image_path, points, input_2d_coordinates):
     # Convert to RGB
     image_rgb_resized = cv2.cvtColor(image_resized, cv2.COLOR_BGR2RGB)
     # Generate masks
-    result = mask_generator.generate(image_rgb_resized) # 얘가 문제임
 
     annotated_image_resized = image_rgb_resized.copy()
     
@@ -114,6 +114,7 @@ def process_image(image_path, points, input_2d_coordinates):
         cv2.circle(annotated_image_resized, (x_resized, y_resized), 5, (255, 0, 0), -1)  # Red in RGB
         marker_points.append((x_resized, y_resized))
 
+    result = mask_generator.generate(image_rgb_resized) # 얘가 문제임
     # Prepare to store filtered coordinates
     # filtered_coordinates = []
 
