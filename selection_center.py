@@ -7,6 +7,10 @@ import time
 chunk = Metashape.app.document.chunk
 doc = Metashape.app.document
 
+# img_dir = r"C:\Users\yejim\Desktop\cgv\github\github_script_final\result\result_img"
+# marker_file = r"C:\Users\yejim\Desktop\cgv\github\github_script_final\result\marker_coordinate.csv"
+# vertex_3d_file = r"C:\Users\yejim\Desktop\cgv\github\github_script_final\result\vertex_3d.csv"
+# vertex_2d_file = r"C:\Users\yejim\Desktop\cgv\github\github_script_final\result\vertex_2d"
 img_dir = r"D:\Users\hoans\rist\sam\result_img"
 marker_file = r"D:\Users\hoans\rist\sam\marker_coordinate.csv"
 vertex_3d_file = r"D:\Users\hoans\rist\sam\vertex_3d.csv"

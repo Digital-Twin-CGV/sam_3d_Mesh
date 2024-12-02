@@ -23,7 +23,7 @@ mask_generator = SamAutomaticMaskGenerator(sam)
 input_img_path = r"C:\Users\yejim\Desktop\cgv\github\github_script_final\result\result_img"
 output_img_path = r"C:\Users\yejim\Desktop\cgv\github\github_script_final\result\sam_img"
 csv_file_path = r"C:\Users\yejim\Desktop\cgv\github\github_script_final\result\marker_coordinate.csv"
-input_2d_path = r"C:\Users\yejim\Desktop\cgv\github\github_script_final\result\vertex_2d"
+input_2d_path = r"C:\Users\yejim\Desktop\cgv\github\github_script_final\result\vertex_2d.csv"
 
 output_txt_path = os.path.join(output_img_path, 'filtered_coordinates.csv')
 
@@ -41,25 +41,32 @@ def get_color():
     return (255, 0, 255)  # Pink color in RGB format
 
 def read_2d_coordinates(file_path):
-    """디렉토리에서 CSV 파일들의 2D 좌표를 읽어옵니다."""
+    """Reads 2D coordinates from a text file."""
     coordinates = []
-    for filename in os.listdir(file_path):
-        if filename.lower().endswith(".csv"):
-            with open(os.path.join(file_path, filename), 'r') as file:
-                reader = csv.reader(file)
-                for row in reader:
-                    if len(row) == 4:
-                        camera_id, index, x_str, y_str = row
-                        try:
-                            x = float(x_str)
-                            y = float(y_str)
-                            coordinates.append((camera_id, index, x, y))
-                        except ValueError:
-                            print(f"Invalid coordinate in file {file_path}: {row}")
-                    else:
-                        print(f"Malformed line in file {file_path}: {row}")
-
+    with open(file_path, 'r') as file:
+        for line in file:
+            camera_id, index, x_str, y_str = line.strip().split(',')
+            x = float(x_str)
+            y = float(y_str)
+            coordinates.append((camera_id, int(index), x, y))
     return coordinates
+
+    # for filename in os.listdir(file_path):
+    #     if filename.lower().endswith(".csv"):
+    #         with open(os.path.join(file_path, filename), 'r') as file:
+    #             reader = csv.reader(file)
+    #             for row in reader:
+    #                 if len(row) == 4:
+    #                     camera_id, index, x_str, y_str = row
+    #                     try:
+    #                         x = float(x_str)
+    #                         y = float(y_str)
+    #                         coordinates.append((camera_id, index, x, y))
+    #                     except ValueError:
+    #                         print(f"Invalid coordinate in file {file_path}: {row}")
+    #                 else:
+    #                     print(f"Malformed line in file {file_path}: {row}")
+    # return coordinates
 
 def read_csv_file(csv_path):
     """Reads coordinates from a CSV file."""
@@ -156,25 +163,22 @@ def process_image(image_path, points, input_2d_coordinates):
     # 약 5.9초
     result = mask_generator.generate(roi_image)
 
-    # ROI 크기의 이미지 생성
-    annotated_roi = roi_image.copy()
-
-    # Draw points from CSV (markers) in ROI coordinates
-    # 0.0000 초
+    annotated_image_resized = image_rgb_resized.copy()
     
+    # ROI 영역 표시 (디버깅용)
+    cv2.rectangle(annotated_image_resized, (roi_x1, roi_y1), (roi_x2, roi_y2), (0, 255, 0), 2)
+
+
     marker_points = []
     for (x, y) in points[camera]:
         x_resized = int(round(x * scale_factor))
         y_resized = int(round(y * scale_factor))
-        
-        # 마커가 ROI 내부에 있는 경우만 처리
-        if (roi_x1 <= x_resized < roi_x2 and roi_y1 <= y_resized < roi_y2):
-            # ROI 좌표계로 변환
-            x_roi = x_resized - roi_x1
-            y_roi = y_resized - roi_y1
-            cv2.circle(annotated_roi, (x_roi, y_roi), 5, (255, 0, 0), -1)  # Red in RGB
-            marker_points.append((x_roi, y_roi))
-    
+        # ROI 좌표계로 변환
+        x_roi = x_resized - roi_x1
+        y_roi = y_resized - roi_y1
+        # Draw red circles
+        cv2.circle(annotated_image_resized, (x_resized, y_resized), 5, (255, 0, 0), -1)  # Red in RGB
+        marker_points.append((x_roi, y_roi))  # ROI 좌표계로 저장
 
     # Overlay masks only if they contain marker points
 
@@ -202,7 +206,18 @@ def process_image(image_path, points, input_2d_coordinates):
         mask_image[mask_array] = mask_color
         annotated_roi = cv2.addWeighted(annotated_roi, 1.0, mask_image, 0.5, 0)
         if contains_marker:
-            # Apply the mask overlay to ROI
+            # 전체 이미지 크기의 마스크 생성
+            # full_mask = np.zeros((image_rgb_resized.shape[0], image_rgb_resized.shape[1]), dtype=bool)
+            roi_mask = np.zeros((roi_y2 - roi_y1, roi_x2 - roi_x1), dtype=bool)
+            # ROI 영역에 마스크 복사
+            # full_mask[roi_y1:roi_y2, roi_x1:roi_x2] = mask_array
+            roi_mask[:mask_array.shape[0], :mask_array.shape[1]] = mask_array  
+
+            # Apply the mask overlay
+            mask_image = np.zeros_like(annotated_image_resized)
+            # mask_image[full_mask] = mask_color
+            mask_image[roi_y1:roi_y2, roi_x1:roi_x2][roi_mask] = mask_color
+            annotated_image_resized = cv2.addWeighted(annotated_image_resized, 1.0, mask_image, 0.5, 0)
 
             # Filter input 2D coordinates that fall within this mask
             for (camera_id, index, x, y) in input_2d_coordinates:
@@ -211,7 +226,7 @@ def process_image(image_path, points, input_2d_coordinates):
                     x_resized = int(round(x * scale_factor))
                     y_resized = int(round(y * scale_factor))
                     
-                    # 좌표가 ROI 내부에 있는지 확인
+                    # 좌표가 ROI 내부에 있고 마스크 내부에 있는지 확인
                     if (roi_x1 <= x_resized < roi_x2 and roi_y1 <= y_resized < roi_y2):
                         # ROI 좌표계로 변환
                         x_roi = x_resized - roi_x1
@@ -219,8 +234,9 @@ def process_image(image_path, points, input_2d_coordinates):
                         
                         if (0 <= x_roi < mask_array.shape[1] and 
                             0 <= y_roi < mask_array.shape[0] and 
-                            mask_array[y_roi, x_roi]):
-                            cv2.circle(annotated_roi, (x_roi, y_roi), 1, (0, 0, 255), -1)
+                            # mask_array[y_roi, x_roi]):
+                            roi_mask[y_roi, x_roi]):
+                            cv2.circle(annotated_image_resized, (x_resized, y_resized), 1, (0, 0, 255), -1)
                             filtered_coord.add(index)
                             
                             if camera_id not in camera_index_dict:
@@ -236,7 +252,6 @@ def process_image(image_path, points, input_2d_coordinates):
 
     # Resize annotated image back to original size
     annotated_image = cv2.resize(annotated_image_resized, (original_width, original_height), interpolation=cv2.INTER_LINEAR)
-    
     # Convert back to BGR for saving
     annotated_image_bgr = cv2.cvtColor(annotated_image, cv2.COLOR_RGB2BGR)
 
