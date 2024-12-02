@@ -19,10 +19,12 @@ sam.to(device=DEVICE)
 mask_generator = SamAutomaticMaskGenerator(sam)
 
 # File paths
-input_img_path = r"D:\Users\hoans\rist\sam\result_img"
-output_img_path = r"D:\Users\hoans\rist\sam\sam_img"
-csv_file_path = r"D:\Users\hoans\rist\sam\marker_coordinate.csv"
-input_2d_path = r"D:\Users\hoans\rist\sam\vertex_2d"
+
+input_img_path = r"C:\Users\yejim\Desktop\cgv\github\github_script_final\result\result_img"
+output_img_path = r"C:\Users\yejim\Desktop\cgv\github\github_script_final\result\sam_img"
+csv_file_path = r"C:\Users\yejim\Desktop\cgv\github\github_script_final\result\marker_coordinate.csv"
+input_2d_path = r"C:\Users\yejim\Desktop\cgv\github\github_script_final\result\vertex_2d"
+
 output_txt_path = os.path.join(output_img_path, 'filtered_coordinates.csv')
 
 # Ensure the output directory exists
@@ -39,7 +41,7 @@ def get_color():
     return (255, 0, 255)  # Pink color in RGB format
 
 def read_2d_coordinates(file_path):
-    """Reads 2D coordinates from a text file."""
+    """디렉토리에서 CSV 파일들의 2D 좌표를 읽어옵니다."""
     coordinates = []
     for filename in os.listdir(file_path):
         if filename.lower().endswith(".csv"):
@@ -56,6 +58,7 @@ def read_2d_coordinates(file_path):
                             print(f"Invalid coordinate in file {file_path}: {row}")
                     else:
                         print(f"Malformed line in file {file_path}: {row}")
+
     return coordinates
 
 def read_csv_file(csv_path):
