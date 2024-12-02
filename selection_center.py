@@ -1,6 +1,7 @@
 # 선택한 vertex의 3d, 2d 저장. 사진 저장
 import Metashape 
 import os, shutil, csv
+import time
 
 
 chunk = Metashape.app.document.chunk
@@ -59,7 +60,9 @@ def marker_coordinates(doc, img_dir):
                             writer = csv.writer(file)
                             writer.writerow([camera.label, marker.label, imX, imY])
             if visible_marker is 1:
+                
                 vertex_3d_to_2d(camera)
+                
                 visible_marker = 2
 
 def vertex_3d_to_2d(camera):
@@ -132,4 +135,7 @@ else:
     print("선택된 vertex가 없습니다.")
 
 # SAM을 하기 위한 마커 좌표
+start_time = time.time()
 marker_coordinates(doc, img_dir)
+end_time = time.time()
+print(f"Execution time: {end_time - start_time:.4f} seconds")

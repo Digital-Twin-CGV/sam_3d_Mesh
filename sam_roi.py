@@ -41,12 +41,21 @@ def get_color():
 def read_2d_coordinates(file_path):
     """Reads 2D coordinates from a text file."""
     coordinates = []
-    with open(file_path, 'r') as file:
-        for line in file:
-            camera_id, index, x_str, y_str = line.strip().split(',')
-            x = float(x_str)
-            y = float(y_str)
-            coordinates.append((camera_id, int(index), x, y))
+    for filename in os.listdir(file_path):
+        if filename.lower().endswith(".csv"):
+            with open(os.path.join(file_path, filename), 'r') as file:
+                reader = csv.reader(file)
+                for row in reader:
+                    if len(row) == 4:
+                        camera_id, index, x_str, y_str = row
+                        try:
+                            x = float(x_str)
+                            y = float(y_str)
+                            coordinates.append((camera_id, index, x, y))
+                        except ValueError:
+                            print(f"Invalid coordinate in file {file_path}: {row}")
+                    else:
+                        print(f"Malformed line in file {file_path}: {row}")
     return coordinates
 
 def read_csv_file(csv_path):
@@ -115,9 +124,9 @@ def process_image(image_path, points, input_2d_coordinates):
         return
 
     # ROI 범위 출력
-    print(f"\nROI bounds for camera {camera}:")
-    print(f"X range: {roi_bounds['min_x']:.2f} to {roi_bounds['max_x']:.2f}")
-    print(f"Y range: {roi_bounds['min_y']:.2f} to {roi_bounds['max_y']:.2f}")
+    # print(f"\nROI bounds for camera {camera}:")
+    # print(f"X range: {roi_bounds['min_x']:.2f} to {roi_bounds['max_x']:.2f}")
+    # print(f"Y range: {roi_bounds['min_y']:.2f} to {roi_bounds['max_y']:.2f}")
 
     original_height, original_width = image_bgr.shape[:2]
     image_resized = cv2.resize(image_bgr, (0, 0), fx=scale_factor, fy=scale_factor)
@@ -141,12 +150,15 @@ def process_image(image_path, points, input_2d_coordinates):
     roi_image = image_rgb_resized[roi_y1:roi_y2, roi_x1:roi_x2]
     
     # ROI 영역에 대해서만 SAM 실행
+    # 약 5.9초
     result = mask_generator.generate(roi_image)
 
     # ROI 크기의 이미지 생성
     annotated_roi = roi_image.copy()
 
     # Draw points from CSV (markers) in ROI coordinates
+    # 0.0000 초
+    
     marker_points = []
     for (x, y) in points[camera]:
         x_resized = int(round(x * scale_factor))
@@ -159,9 +171,14 @@ def process_image(image_path, points, input_2d_coordinates):
             y_roi = y_resized - roi_y1
             cv2.circle(annotated_roi, (x_roi, y_roi), 5, (255, 0, 0), -1)  # Red in RGB
             marker_points.append((x_roi, y_roi))
+    
 
     # Overlay masks only if they contain marker points
+
     mask_color = np.array(get_color(), dtype=np.uint8)
+    
+    
+    # 약 0.1 ~ 0.3 초
     for mask in result:
         mask_array = mask['segmentation']  # ROI 크기의 마스크
         # Find contours of the mask
@@ -178,11 +195,11 @@ def process_image(image_path, points, input_2d_coordinates):
             if contains_marker:
                 break
 
+        mask_image = np.zeros_like(annotated_roi)
+        mask_image[mask_array] = mask_color
+        annotated_roi = cv2.addWeighted(annotated_roi, 1.0, mask_image, 0.5, 0)
         if contains_marker:
             # Apply the mask overlay to ROI
-            mask_image = np.zeros_like(annotated_roi)
-            mask_image[mask_array] = mask_color
-            annotated_roi = cv2.addWeighted(annotated_roi, 1.0, mask_image, 0.5, 0)
 
             # Filter input 2D coordinates that fall within this mask
             for (camera_id, index, x, y) in input_2d_coordinates:
@@ -206,7 +223,7 @@ def process_image(image_path, points, input_2d_coordinates):
                             if camera_id not in camera_index_dict:
                                 camera_index_dict[camera_id] = set()
                             camera_index_dict[camera_id].add(index)
-
+    
     # ROI 영역을 원본 이미지에 복사
     annotated_image_resized = image_rgb_resized.copy()
     annotated_image_resized[roi_y1:roi_y2, roi_x1:roi_x2] = annotated_roi
@@ -221,9 +238,13 @@ def process_image(image_path, points, input_2d_coordinates):
     annotated_image_bgr = cv2.cvtColor(annotated_image, cv2.COLOR_RGB2BGR)
 
     # Save the annotated image
+    # 0.0000 초
     output_path = os.path.join(output_img_path, f"annotated_{os.path.basename(image_path)}")
     
+    # 0.6 ~ 0.75 초
     success = cv2.imwrite(output_path, annotated_image_bgr)
+
+
     if success:
         print(f"Annotated image saved successfully at {output_path}")
         
@@ -257,7 +278,7 @@ def save_common_index(output_csv):
     filtered_indexes = [index for index, count in index_count.items() if count >= (camera_count * (3/5))]
     
     if filtered_indexes:
-        with open(output_csv, 'a', newlsine='') as csvfile:
+        with open(output_csv, 'a') as csvfile:
             writer = csv.writer(csvfile)
             for index in filtered_indexes:
                 writer.writerow([index])
@@ -265,19 +286,28 @@ def save_common_index(output_csv):
 # Read points from CSV and 2D coordinates from text file
 points = read_csv_file(csv_file_path)
 input_2d_coordinates = read_2d_coordinates(input_2d_path)
+# 4초
 
 # Process the image(s)
+# 351.5 초
+start_time = time.time()
 if os.path.isdir(input_img_path):
     for filename in os.listdir(input_img_path):
         if filename.lower().endswith((".png", ".jpg", ".jpeg")):
             image_file = os.path.join(input_img_path, filename)
 
             process_image(image_file, points, input_2d_coordinates)
+            # 약 7.5초
 else:
     process_image(input_img_path, points, input_2d_coordinates)
+end_time = time.time()
+print(f"SAM time: {end_time - start_time:.4f} seconds")
 
-
+start_time = time.time()
+# 0.2 초
 save_common_index(output_txt_path)
+end_time = time.time()
+print(f"index time: {end_time - start_time:.4f} seconds")
 # print(filtered_coord)
 # with open(output_txt_path, mode='a', newline='') as file:
 #             writer = csv.writer(file)
