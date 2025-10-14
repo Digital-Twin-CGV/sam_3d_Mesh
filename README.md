@@ -1,4 +1,5 @@
 # 2024-가을 학기 산학 과제
+## Segmentation Anything Model (SAM) in Mesh
 
 ### 🧑‍🤝‍🧑 멤버 소개
 
